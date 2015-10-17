@@ -2,7 +2,7 @@
 
 import os from 'os';
 import EnumItem from './enumItem';
-import { isString } from './isType';
+import { isString, isArray } from './isType';
 import { indexOf } from './indexOf';
 
 const endianness = os.endianness();
@@ -35,7 +35,7 @@ export default class Enum {
 
     this.enums = [];
 
-    if (map.length) {
+    if (isArray(map)) {
       var array = map;
       map = {};
 
