@@ -66,6 +66,11 @@ export default class Enum {
     }
 
     const isFlaggable = () => {
+      const {isFlaggable} = this._options;
+      if (isFlaggable !== undefined) {
+        return !!isFlaggable;
+      }
+      
       for (var i = 0, len = this.enums.length; i < len; i++) {
         var e = this.enums[i];
 
