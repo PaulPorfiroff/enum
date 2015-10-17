@@ -34,16 +34,8 @@ export default class Enum {
     this._options.freez = this._options.freez || false;
 
     this.enums = [];
-
-    if (isArray(map)) {
-      var array = map;
-      map = {};
-
-      for (var i = 0; i < array.length; i++) {
-        map[array[i]] = Math.pow(2, i);
-      }
-    }
-
+    
+    map = Enum.toMap(map);
     for (var member in map) {
       guardReservedKeys(this._options.name, member);
       this[member] = new EnumItem(member, map[member], { ignoreCase: this._options.ignoreCase });
@@ -262,6 +254,39 @@ export default class Enum {
    */
   toJSON() {
     return this._enumMap;
+  }
+
+  /**
+   * Constructs an object with properties copied from multiple sources.
+   * @param  {Enum || Object || Array} sources Sources to construct and copy properties from.
+   * @return {Object}                          Object with properties copied from sources.
+   */
+  static toMap(...sources) {
+    const map = {};
+    var shift = 0;
+    for (var i = 0; i < sources.length; i++) {
+      var source = sources[i];
+      if (isArray(source)) {
+        for (var j = 0; j < source.length; j++) {
+          const member = source[j];
+          map[member] = Math.pow(2, shift++);
+        }
+      } else {
+        if (Enum.isEnum(source)) {
+          source = source._enumMap;
+        }
+
+        for (const member in source) {
+          map[member] = source[member];
+        }
+      }
+    }
+    
+    return map;
+  }
+  
+  static isEnum(value) {
+    return value instanceof Enum;
   }
 
   /**
