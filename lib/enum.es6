@@ -257,29 +257,68 @@ export default class Enum {
   }
 
   /**
-   * Constructs an object with properties copied from multiple sources.
+   * Constructs an object with properties copied from multiple sources to be passed into Enum constructor.
    * @param  {Enum || Object || Array} sources Sources to construct and copy properties from.
-   * @return {Object}                          Object with properties copied from sources.
+   * @param  {String}                  options Name of the property to store combination of all flags in.
+   * @return {Object}                          Object with properties copied from specified sources.
    */
-  static toMap(...sources) {
+  static toMap(...sources /* [, options] */) {
+    // Extract options
+    const options = {};
+    if (sources.length > 1) {
+      const [allFlagName] = sources.slice(-1);
+      if (isString(allFlagName)) {
+        options.all = allFlagName;
+        --sources.length;
+      }
+    }
+    
+    // Build enum map
+    function appendKey(name, value) {
+      map[name] = value !== undefined ? value : Math.pow(2, shift++);
+    }
+    
     const map = {};
     var shift = 0;
     for (var i = 0; i < sources.length; i++) {
       var source = sources[i];
       if (isArray(source)) {
         for (var j = 0; j < source.length; j++) {
-          const member = source[j];
-          map[member] = Math.pow(2, shift++);
+          appendKey(source[j]);
         }
+      } else if (EnumItem.isEnumItem(source)) {
+        appendKey(source.key, source.value);
       } else {
         if (Enum.isEnum(source)) {
           source = source._enumMap;
         }
 
-        for (const member in source) {
-          map[member] = source[member];
+        for (var key in source) {
+          appendKey(key, source[key]);
         }
       }
+    }
+    
+    // Process options
+    function combineAllFlags() {
+      var allFlag = 0;
+      for (var key in map) {
+        const value = map[key];
+        if (!(value & value - 1)) {
+          allFlag |= value;
+        }
+      }
+      return allFlag;
+    }
+    
+    const {all} = options;
+    if (all !== undefined) {
+      var oldValue = map[all];
+      var newValue = combineAllFlags();
+      if (!(oldValue & oldValue - 1)) {
+        newValue &= ~oldValue;
+      }
+      map[all] = newValue;
     }
     
     return map;
