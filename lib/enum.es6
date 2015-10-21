@@ -64,9 +64,7 @@ export default class Enum {
       }
       
       for (var i = 0, len = this.enums.length; i < len; i++) {
-        var e = this.enums[i];
-
-        if (!(e.value !== 0 && !(e.value & e.value - 1))) {
+        if (!isFlag(this.enums[i].value)) {
           return false;
         }
       }
@@ -304,7 +302,7 @@ export default class Enum {
       var allFlag = 0;
       for (var key in map) {
         const value = map[key];
-        if (!(value & value - 1)) {
+        if (isFlag(value)) {
           allFlag |= value;
         }
       }
@@ -315,7 +313,7 @@ export default class Enum {
     if (all !== undefined) {
       var oldValue = map[all];
       var newValue = combineAllFlags();
-      if (!(oldValue & oldValue - 1)) {
+      if (isFlag(oldValue)) {
         newValue &= ~oldValue;
       }
       map[all] = newValue;
@@ -347,4 +345,7 @@ function guardReservedKeys(customName, key) {
   if ((customName && key === 'name') || indexOf.call(reservedKeys, key) >= 0) {
     throw new Error(`Enum key ${key} is a reserved word!`);
   }
+}
+function isFlag(value) {
+  return (value | 0) && !(value & value - 1);
 }
